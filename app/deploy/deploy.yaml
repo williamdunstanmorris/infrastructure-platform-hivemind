@@ -2,6 +2,11 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: hivemind-production
+spec:
+  template:
+    spec:
+      containers:
+        - image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:b4dec79
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -27,12 +32,12 @@ spec:
               app.kubernetes.io/name: hivemind
       containers:
         - name: hivemind
-          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:latest
+          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:b4dec79
           env:
-          - name: HELLO_TAG
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.containers[?(@.name=='hivemind')].image
+            - name: HELLO_TAG
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.containers[?(@.name=='hivemind')].image
           ports:
             - name: http-app
               containerPort: 8080
@@ -41,8 +46,8 @@ spec:
               path: /
               port: http-app
           resources:
-            requests: { cpu: 50m, memory: 64Mi }
-            limits: { memory: 128Mi }
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 128Mi}
 ---
 apiVersion: v1
 kind: Service
@@ -56,6 +61,10 @@ spec:
   ports:
     - port: 80
       targetPort: 8080
+  template:
+    spec:
+      containers:
+        - image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:b4dec79
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -83,3 +92,7 @@ spec:
                 name: hivemind-service
                 port:
                   number: 80
+  template:
+    spec:
+      containers:
+        - image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:b4dec79
