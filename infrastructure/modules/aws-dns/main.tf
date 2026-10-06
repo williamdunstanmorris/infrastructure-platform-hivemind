@@ -3,7 +3,7 @@ resource "aws_route53_zone" "main" {
 }
 
 resource "aws_acm_certificate" "certification" {
-  domain_name = "subcloudlabs.com"
+  domain_name       = "subcloudlabs.com"
   validation_method = "DNS"
 }
 
@@ -30,5 +30,5 @@ resource "aws_route53_record" "cert_validation" {
 
 resource "aws_acm_certificate_validation" "wildcard" {
   certificate_arn         = aws_acm_certificate.wildcard.arn
-  validation_record_fqdns = [ for r in aws_route53_record.cert_validation : r.fqdn]
+  validation_record_fqdns = [for r in aws_route53_record.cert_validation : r.fqdn]
 }

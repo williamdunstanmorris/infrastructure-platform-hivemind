@@ -28,7 +28,7 @@ There are three core directories. The `infrastructure` directory and the `platfo
 │       └── aws-network   # VPC, Multi-az, private+public subnets, Route Tables, NAT G, IG
 └── platform              # Platform Infrastructure, Github App Repo,
 ```
-
+* With child modules for terraform, it is advised to track them separately in their own versioned repo, and reference them. This would make them reusable and assist with keeping in D.R.Y
 ## Getting Started / Deployment
 
 Make sure you have run `aws configure`. Going forward, AWSCLI and Terraform Providers are based on the AWS_PROFILE `--profile hivemind` flag if you have multiple AWS Organisations.

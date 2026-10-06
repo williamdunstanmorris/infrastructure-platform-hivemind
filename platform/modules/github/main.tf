@@ -1,10 +1,3 @@
-provider "github" {
-  owner = "williamdunstanmorris" # auth: export GITHUB_TOKEN=<personal access token>
-}
-
-data "aws_iam_role" "github_ci" { name = "main-github-ci" }
-
-
 resource "github_repository" "infrastructure" {
   name       = "infrastructure-platform-hivemind"
   visibility = "public"

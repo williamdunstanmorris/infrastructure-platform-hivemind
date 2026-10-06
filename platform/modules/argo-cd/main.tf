@@ -53,8 +53,8 @@ resource "argocd_application" "administration" {
 
       automated {
         allow_empty = false
-        prune = true
-        self_heal = true
+        prune       = true
+        self_heal   = true
       }
     }
   }

@@ -12,20 +12,6 @@ resource "helm_release" "argo_cd" {
     }
   ]
 }
-#
-# resource "helm_release" "argo_rollouts" {
-#   name             = "argo"
-#   repository       = "https://argoproj.github.io/argo-helm"
-#   chart            = "argo-rollouts"
-#   version          = "2.43.2"
-#   create_namespace = true
-#   namespace        = "argo-rollouts"
-#   set = [
-#     {
-#       name = "dashboard.enabled", value = "true"
-#     }
-#   ]
-# }
 
 resource "helm_release" "aws_lb_controller" {
   name       = "aws-load-balancer-controller"
@@ -46,8 +32,8 @@ resource "helm_release" "aws_lb_controller" {
     # (IRSA). This replaces eksctl create iamserviceaccount.
     { name = "serviceAccount.create", value = "true" },
     { name = "serviceAccount.name", value = "aws-load-balancer-controller" },
-    { name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn",
-      value = data.aws_iam_role.lb_controller.arn },
+    { name = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn",
+    value = data.aws_iam_role.lb_controller.arn },
   ]
 }
 

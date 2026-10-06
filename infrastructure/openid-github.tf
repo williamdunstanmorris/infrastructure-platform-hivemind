@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "github_ci" {
   }
   statement {
     actions = ["ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload",
-      "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage"]
+    "ecr:UploadLayerPart", "ecr:CompleteLayerUpload", "ecr:PutImage"]
     resources = [module.ecr.aws_ecr_repository_arn]
   }
 }
