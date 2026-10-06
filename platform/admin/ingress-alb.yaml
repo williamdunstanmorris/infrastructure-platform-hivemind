@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hivemind
+  namespace: hivemind
+  annotations:
+    alb.ingress.kubernetes.io/group.name: shared            # same value = same ALB
+    alb.ingress.kubernetes.io/load-balancer-name: shared-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:435957166704:certificate/842931b2-ccb6-4331-a1c6-d98b44f98028
+spec:
+  ingressClassName: alb
+  rules:
+    - host: hivemind.subcloudlabs.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: hivemind, port: { number: 80 } }

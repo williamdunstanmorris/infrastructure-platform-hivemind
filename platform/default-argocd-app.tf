@@ -10,13 +10,11 @@ resource "argocd_application" "cluster_apps" {
       namespace = "argocd"
     }
     revision_history_limit = 10
-
     source {
       repo_url        = "https://github.com/williamdunstanmorris/infrastructure-platform-hivemind"
       target_revision = "HEAD"
       path            = "platform/apps"
     }
-
     sync_policy {
 
       automated {
@@ -28,6 +26,34 @@ resource "argocd_application" "cluster_apps" {
         prune = true
         # Self heal: When another client is interacting e.g. kubectl.
         # Turn off during an outage, if an engineer needs to recover or scale up quickly.
+        self_heal = true
+      }
+    }
+  }
+}
+
+resource "argocd_application" "administration" {
+  metadata {
+    name      = "cluster-administration"
+    namespace = "argocd"
+  }
+
+  spec {
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "argocd"
+    }
+    revision_history_limit = 10
+    source {
+      repo_url        = "https://github.com/williamdunstanmorris/infrastructure-platform-hivemind"
+      target_revision = "HEAD"
+      path            = "platform/admin"
+    }
+    sync_policy {
+
+      automated {
+        allow_empty = false
+        prune = true
         self_heal = true
       }
     }
