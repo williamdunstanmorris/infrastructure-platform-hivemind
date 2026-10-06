@@ -29,11 +29,12 @@ spec:
         - name: hivemind
           image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:latest
           ports:
-            - containerPort: 8080
+            - name: http-app
+              containerPort: 8080
           readinessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: http-app
           resources:
             requests: { cpu: 50m, memory: 64Mi }
             limits: { memory: 128Mi }
@@ -44,12 +45,12 @@ metadata:
   name: hivemind-service
   namespace: hivemind-production
 spec:
-  type: ClusterIP                  # target-type: ip doesn't need NodePort
+  type: ClusterIP
   selector:
     app.kubernetes.io/name: hivemind
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
