@@ -14,10 +14,13 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - host: hivemind.subcloudlabs.com
+    - host: game.subcloudlabs.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
-              service: { name: hivemind, port: { number: 80 } }
+              service:
+                name: service-2048
+                port:
+                  number: 80
