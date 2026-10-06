@@ -56,8 +56,8 @@ jobs:
           IMAGE_URI="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:${{ env.TAG }}"
           
           yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"$IMAGE_URI"'"' $MANIFEST
-
-      # 6. Commit back to repo for ArgoCD sync
+          yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].env[] | select(.name == "HELLO_TAG").value) = "'"${{ env.TAG }}"'"' $MANIFEST
+      
       - name: Commit and push GitOps changes
         run: |
           git config user.name "github-actions[bot]"
