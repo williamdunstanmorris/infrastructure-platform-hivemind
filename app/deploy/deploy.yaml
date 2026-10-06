@@ -27,10 +27,10 @@ spec:
               app.kubernetes.io/name: hivemind
       containers:
         - name: hivemind
-          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:7e85161
+          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:latest
           env:
             - name: HELLO_TAG
-              value: 7e85161
+              value: 15e71af
           ports:
             - name: http-app
               containerPort: 8080
