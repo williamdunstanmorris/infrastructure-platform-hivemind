@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - "deploy/**"
-      - "app/deploy/**"
+#      - "app/deploy/**"
       - "**.md"
 
 permissions:
