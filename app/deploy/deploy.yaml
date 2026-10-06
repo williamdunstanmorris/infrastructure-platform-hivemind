@@ -55,7 +55,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: hivemind-ingress
-  namespace: production
+  namespace: hivemind-production
   annotations:
     alb.ingress.kubernetes.io/group.name: shared
     alb.ingress.kubernetes.io/load-balancer-name: shared-alb
