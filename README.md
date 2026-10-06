@@ -3,12 +3,12 @@
 Hey! This is my solution to your challenge! 
 
 ## Some Closing Solution Notes
-* I ran overtime, and as a result did not succeed in authenticating OICD Github with AWS OID Provider to push to AWS ECR.
-* 70% of the time was spent configuring AWS, setting up VPC, Subnets, Route Tables, Route53, Bastion, administration of EKS, Helm, and ArgoCD. 30% of the time was spent on the actual deployment of the app itself.
 * Overall, this works well, and is a almost-production-grade system in regard to the AWS (e.g. Security Posture). But it needs more time & work (e.g. Kubernetes / GitOps app management)
+* 70% of the time was spent configuring AWS, setting up VPC, Subnets, Route Tables, Route53, Bastion, administration of EKS, Helm, and ArgoCD. 30% of the time was spent on the actual deployment of the app itself.
 * Please don't steal my work. These are a lot of my code & industry-experiences and insights / ideas over the last decade I accumulated have given in code here. Please respect :)
+* I inserted a little easter egg into this solution somewhere, it's not too hard to find.
 
-This repo deploys the app `./greeter` to Kubernetes, hosted on AWS. It is provided on my own own personal domain 
+This repo deploys the app `./greeter` to Kubernetes, hosted on AWS. It is provided on my own personal domain. 
 ```
 https://hivemind.subcloudlabs.com/
 ```
@@ -23,9 +23,9 @@ This aims to be production-ready and highly available. Therefore,
 - Node Group Scaling
 - Replicas 
 - PodDisruptionBudgets (WIP)
-- Health Probes, 
-- Live-ness probes, 
-- EKS auto mode: topologySpreadConstraints, de-registration delay, pod readiness gates are in effect.
+- Health Probes
+- Live-ness probes 
+- (WIP) EKS auto mode: topologySpreadConstraints, de-registration delay, pod readiness gates are in effect.
 - Please note: Not all of these were able to be deployed in time. But this was the direction.
 
 ## Prerequisites
@@ -38,11 +38,11 @@ This aims to be production-ready and highly available. Therefore,
 There are three core directories. The `infrastructure` directory and the `platform` directory each have differing terraform states. sectioned according to good pattern practices. The infrastructure is responsible for all core necessary infrastructure, and the platform is dedicated to provisioning baseline cluster necessities, like ArgoCD. You could expand this to include other helm charts, like Grafana, Prometheus and other EKS administration tooling to expand the internal developer platform too. The `apps` directory is where all app configuration lives.
 ```
 .
-├── apps                  # App manifest
+├── app                   # App source code and ApplicationSpec manifest
 ├── infrastructure        # Core infrastructure 
 │   └── modules
 │       ├── aws-bastion   # Connectivity. EKS is private-subnetted, AWS Session Manager with a private VPC endpoint to connect via IAM.
-│       ├── aws-dns       # DNS
+│       ├── aws-dns       # DNS Records, ACM 
 │       ├── aws-eks       # EKS, addons, node-groups, IAM
 │       └── aws-network   # VPC, Multi-az, private+public subnets, Route Tables, NAT G, IG
 └── platform              # Platform Infrastructure, Github App Repo,

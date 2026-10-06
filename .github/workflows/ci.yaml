@@ -30,29 +30,28 @@ jobs:
       - name: Set Image Tag
         run: echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-#      - name: Configure AWS Credentials
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          role-to-assume: ${{ vars.AWS_ROLE_ARN }} # Using repository variable
-#          aws-region: eu-central-1
-#
-#      - name: Log in to ECR
-#        uses: aws-actions/amazon-ecr-login@v2
-#
-#      - name: Build and Push Docker Image
-#        working-directory: app/src
-#        run: |
-#          REGISTRY="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind"
-#          docker build --platform linux/amd64 -t $REGISTRY:${{ env.TAG }} .
-#          docker push $REGISTRY:${{ env.TAG }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: eu-central-1
 
-      # Update image tag in app/deploy/deploy.yaml
+      - name: Log in to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Docker Image
+        working-directory: app/src
+        run: |
+          REGISTRY="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind"
+          docker build --platform linux/amd64 -t $REGISTRY:${{ env.TAG }} .
+          docker push $REGISTRY:${{ env.TAG }}
+
       - name: Update deployment image tag
         run: |
           MANIFEST="app/deploy/deploy.yaml"
           IMAGE_URI="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:${{ env.TAG }}"
           
-#          yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"$IMAGE_URI"'"' $MANIFEST
+          yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].image) = "'"$IMAGE_URI"'"' $MANIFEST
           yq -i '(select(.kind == "Deployment") | .spec.template.spec.containers[0].env[] | select(.name == "HELLO_TAG").value) = "'"${{ env.TAG }}"'"' $MANIFEST
       
       - name: Commit and push GitOps changes
