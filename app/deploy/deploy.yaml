@@ -27,10 +27,10 @@ spec:
               app.kubernetes.io/name: hivemind
       containers:
         - name: hivemind
-          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:latest
+          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:2c0a504
           env:
             - name: HELLO_TAG
-              value: 15e71af
+              value: 2c0a504
           ports:
             - name: http-app
               containerPort: 8080
@@ -39,7 +39,7 @@ spec:
               path: /
               port: http-app
           livenessProbe:
-            httpGet: { path: /, port: http-app }
+            httpGet: {path: /, port: http-app}
             initialDelaySeconds: 10
             periodSeconds: 10
           resources:
