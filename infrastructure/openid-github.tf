@@ -18,7 +18,7 @@ data "aws_iam_policy_document" "github_ci_assume" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:williamdunstanmorris/hivemind-greeter:ref:refs/heads/main"] # main only
+      values   = ["repo:williamdunstanmorris/infrastructure-platform-hivemind:ref:refs/heads/main"] # main only
     }
   }
 }
