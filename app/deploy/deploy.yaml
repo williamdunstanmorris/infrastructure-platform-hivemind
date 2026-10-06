@@ -32,7 +32,7 @@ spec:
             - name: HELLO_TAG
               valueFrom:
                 fieldRef:
-                  fieldPath: spec.containers[?(@.name=='hivemind')].image
+                  fieldPath: spec.containers[0].image
           ports:
             - name: http-app
               containerPort: 8080
