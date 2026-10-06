@@ -18,6 +18,9 @@ defaults:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # CRITICAL: required to request the OIDC JWT
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
