@@ -1,18 +1,37 @@
-# <Project name>
+# Hivemind Greeter
 
-## Overview
-- This repo deploys the app `./greeter` to Kubernetes, hosted on AWS. It is provided on my own domain, `https://subcloudlabs.com/`
-- Kubernetes is hosted using EKS, with its own dedicated AWS ALB LB Controller.
+Hey! This is my solution to your challenge! 
+
+## Some Closing Solution Notes
+* I ran overtime, and as a result did not succeed in authenticating OICD Github with AWS OID Provider to push to AWS ECR.
+* 70% of the time was spent configuring AWS, setting up VPC, Subnets, Route Tables, Route53, Bastion, administration of EKS, Helm, and ArgoCD. 30% of the time was spent on the actual deployment of the app itself.
+* Overall, this works well, and is a almost-production-grade system in regard to the AWS (e.g. Security Posture). But it needs more time & work (e.g. Kubernetes / GitOps app management)
+* Please don't steal my work. These are a lot of my code & industry-experiences and insights / ideas over the last decade I accumulated have given in code here. Please respect :)
+
+This repo deploys the app `./greeter` to Kubernetes, hosted on AWS. It is provided on my own own personal domain 
+```
+https://hivemind.subcloudlabs.com/
+```
+- Kubernetes is hosted on EKS, with its own dedicated AWS ALB LB Controller.
 - Terraform modules were bespoke written, and sectioned according to how they would scale globally.
 - Traffic flows through Route53 → LB/ingress → service → pod
 
 # High availability & production-ready
-- This aims to be production-ready and highly available. Therefore, multi-AZ, replicas, PodDisruptionBudgets, health probes, live-ness probes, EKS auto mode: topologySpreadConstraints, de-registration delay, pod readiness gates are in effect.
+
+This aims to be production-ready and highly available. Therefore, 
+- Multi-AZ, 
+- Node Group Scaling
+- Replicas 
+- PodDisruptionBudgets (WIP)
+- Health Probes, 
+- Live-ness probes, 
+- EKS auto mode: topologySpreadConstraints, de-registration delay, pod readiness gates are in effect.
+- Please note: Not all of these were able to be deployed in time. But this was the direction.
 
 ## Prerequisites
-- Please make sure you have an AWS account and the appropriate permissions to apply Terraform. (AdministratorAccess or similar). With expansion, IAM boundaries could be used to avoid exessive permissions.
-- Please make sure you have a set of baseline tools installed (terraform, aws cli, kubectl, helm, go, docker, cURL).
-- !!! Connecting to K8: Because this is AWS-centric, and to avoid overhead for configuring Bastion inbound firewall rules, AWS Systems Manager Session Manager is used here to access the Kubernetes Cluster + Kubernetes API. You can install it [here](https://docs.aws.amazon.com/systems-manager/latest/userguide/install-plugin-macos-overview.html).
+1. Make sure you have an AWS account and the appropriate permissions to apply Terraform. (AdministratorAccess or similar). With expansion, IAM boundaries could be used to avoid exessive permissions.
+2. Please make sure you have a set of baseline tools installed (terraform, aws cli, kubectl, helm, go, docker, cURL).
+3. Connecting to K8: Because this is AWS-centric, and to avoid overhead for configuring Bastion inbound firewall rules, AWS Systems Manager Session Manager is used here to access the Kubernetes Cluster + Kubernetes API. You can install it [here](https://docs.aws.amazon.com/systems-manager/latest/userguide/install-plugin-macos-overview.html).
 
 ## Repository Layout
 
@@ -29,8 +48,8 @@ There are three core directories. The `infrastructure` directory and the `platfo
 └── platform              # Platform Infrastructure, Github App Repo,
 ```
 * With child modules for terraform, it is advised to track them separately in their own versioned repo, and reference them. This would make them reusable and assist with keeping in D.R.Y
-## Getting Started / Deployment
 
+## Getting Started / Deployment
 Make sure you have run `aws configure`. Going forward, AWSCLI and Terraform Providers are based on the AWS_PROFILE `--profile hivemind` flag if you have multiple AWS Organisations.
 
 To apply infrastructure: 
@@ -44,21 +63,29 @@ To provision the EKS cluster, you need to have a connection to EKS, which goes t
 cd platform && ./connect.sh
 ```
 Keep this window open to continue running any subsequent `kubectl`, `eksctl`, `helm` command tools that require connecting directly to the cluster. 
+```
+cd platform
+terraform init
+terraform apply
+```
 ArgoCD is installed on the cluster via Helm and managed with Terraform. Connect to it and access localhost:8080 on your browser. The temporary access is username: `admin` and password: `changeme123`
 ```
 kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```
 
 ## Using the Service
-- To hit the endpoint, I have created a dedicated HTTP(s) endpoint domain for this solution.
+
+To hit the endpoint, I have created a dedicated HTTP(s) endpoint domain for this solution.
 ```
-❯ curl "http://localhost:8081/"
-Hello, World (192.168.65.1:34940)! I'm e3980714764e [Tag: v1.0.0]
+❯ curl "https://hivemind.subcloudlabs.com/"
+
+Hello, World (94.139.29.44)! I'm hivemind-deployment-7b7697f44-dq6zh [Tag: 15e71af]
 ```
-Additionally, to use a URL parameter with the tag, you can do
+Additionally, if you like Stranger Things, and to use a URL parameter with the tag, you can do
 ```
-❯ curl "http://localhost:8081/?name=Will"
-Hello, The Upside Down (192.168.65.1:60206)! I'm e3980714764e [Tag: v1.0.0]
+curl "https://hivemind.subcloudlabs.com/?name=Will"
+
+Hello, The Upside Down (94.139.29.44)! I'm hivemind-deployment-7b7697f44-5wrkk [Tag: 15e71af]
 ```
 - The ALB is created through the Kubernetes Ingress Object that is interacting with AWS ALB resources. It automatically resolves DNS upon recreation. I did this to remove future TLS and HTTP(s) connectivity overhead that is better handled with Terraform / AWS ACM. You can just focus on creating services without worrying about TLS now.
 - You could expand this by additional authentication on the ALB Load Balancer. Doing so would stop unwanted requests from entering Kubernetes.
@@ -69,76 +96,43 @@ How do you hit the endpoint? Example curl and expected output.
 - How is HELLO_TAG set, and why is that value unique? (config, not hardcoded in the image)
 
 ## CI/CD Pipeline
-- What triggers it? What are the stages (lint, test, build, scan, push, plan, deploy)?
-- Where do images go (ECR), and how are they tagged?
-- How does the pipeline authenticate to AWS? (OIDC vs static keys)
-- Rollback story: how do you revert a bad deploy?
-- What gates exist before prod (approval on apply, plan output on PRs)?
+
+This is currently trunk-based strategy. To deploy, either push or merge onto `main`.
+
+- GitHub workflow is used as the main CI, currently on being used on the main branch.
+- In team situations, you may want to have a workflow that lint, builds and tests on PRs before merging.
+- On deployments for continuous integration, built images that pass scans are pushed to ECR.
+- The app manifest for Kubernetes is updated by the Git workflow, which in turn is picked up by ArgoCD automatically.
+- Improvement: You could add manual tagging for human intervention, to control deployments rather than relying on full automation. Just a suggestion. 
+- Improvement: In team settings, `main` should not be pushed to, only PRs can merge into `main`. For this solution, a trunk-based works well though. I'm a one-man team right now ;)
 
 ## Security
-- Network: private subnets, security groups, what is publicly exposed.
-- IAM: least privilege, IRSA/Pod Identity, no long-lived creds.
-- Container: non-root, minimal base image, image scanning.
+- Kubernetes (EKS), Node Groups and other resources reside in private subnets. 
+- The ALB is internet-facing, which resides in the public subnet.
+- The bastion (EC2 instance) exists in a public subnet, and communicates through `AWS-StartPortForwardingSessionToRemoteHost`
 - Secrets handling, TLS/certs (ACM), encryption at rest for state and cluster.
-
-## Reliability & Performance
-- Autoscaling (HPA, node scaling), resource requests/limits.
-- Probes, rolling update strategy, graceful shutdown.
-- Observability: logs, metrics, alerts. What's in place vs. what you'd add?
+- Future improvements: Trivy should be utilised to do image scans, least privilege should also be used.
+- Future improvements: proper secrets managements through AWS Secrets Manager / SSM Parameter Store should be used to store environment variables, and this source-of-truth should store where secrets reside.
 
 ## Cost Considerations
-- What costs money here (NAT gateways, EKS control plane, LB)?
-- How do you tear it down? (`terraform destroy` and any gotchas)
+- NAT Gateways can be expensive especially with high loads of egress traffic. Just FYI.
 
 ## Tradeoffs & Limitations
-- What did you cut or simplify due to time or the environment, and why?
-- Be explicit. They asked for this and said it's valued.
+- I simplified ArgoCD app-of-apps, as this was overkill, but in the case of having multiple apps in the same cluster, this would be very effective, especially with a team. 
+- I simplified the GitOps strategy vis-a-vis the Git strategy, and opted for a trunk-based development environment.
+- I ran short on time, and I would have loved to have used Fargate Profiles, as a neater way to manage nodes that do not rely on AMIs. 
+- I wanted to utilise a base Ingress for the load balancer, and then separate the hivemind app into a different ArgoCD ApplicationSpec. In this way, it would make handling app specs easier, as you would just declare the routes and rules. But I traded this off by spending more time on getting AWS ALB to communicate with EKS through Ingress objects. I also spent more time making AWS ACM be compatible with Kubernetes.
+- Since the configuration values within Helm Charts are not actually properly tracked by Terraform state, I would have utilised a better helm layout, but in order to deploy ArgoCD and the LB Controller, my trade-off was to use Terraform, as I ran short on time. 
+- I would have opted for splitting up K8 objects better, and handling injections, either with more ArgoCD configuration, or Flux.
+- And don't sweat the small stuff.
 
-## What I'd Do in Production
-- For each limitation above: what would you do with more time or a real environment?
-  (multi-env, WAF, GitOps with ArgoCD/Flux, policy as code, DR, backups, SLOs)
-
-## Troubleshooting
-- Two or three failure modes you actually hit and how you fixed them.
+## What I'd Do in Production / Future Improvements
+- Setup a dedicated `/healthz` HTTPRoute and change the health-check route to this. Use this route to check for successful connections to external resources, like RDS or Elasticache.
+- One could roll out a Prometheus Sidecar to properly monitor time-series metrics and observability using Grafana.
+- For green-blue, canary or more advanced deployments, one could use Argo Rollouts too. But as a starting point, ArgoCD suffices well as the application expands. Don't do too much too soon.
+- You could utilise OPA and auto-apply certain infrastructure on terraform infrastructure.
+- Multi-environments, probably namespaced or even on different EKS clusters. 
+- If you have a high budget, an EKS cluster could even monitor other EKS clusters, which creates a high abstraction layer of up-time, especially if you want to observe other environments / services / infrastructure stacks.
 
 ## Cleanup
-- Exact steps to destroy everything and confirm nothing is left billing.
-
-## Availability Targets (SLOs)
-- What SLO did you pick (e.g. 99.9%), and what does it imply for design?
-- How is it measured, and what alerts fire on it?
-
-## Failure Mode Analysis
-- Table: failure → blast radius → automatic response → recovery time
-  (pod crash, node loss, AZ loss, bad deploy, ALB target failure, expired cert, region outage)
-- Which of these did you actually test? (link the evidence)
-
-## Resilience Testing
-- Exactly what you did: delete pods under load, drain a node, simulate AZ loss
-  (cordon/drain all nodes in one AZ), bad image rollout → rollback.
-- Results: error rate and latency during each test.
-
-## Scaling & Load Test Results
-- Tool and method (k6/hey), traffic profile, and how you scaled.
-- When did HPA trigger, how long did new pods and nodes take, and what was the limiting factor?
-- Graph or numbers. Even a screenshot works.
-
-## Security Posture
-- Short threat model: what are you protecting, from whom?
-- Controls mapped to layers (network, identity, workload, supply chain, data).
-
-## Decision Log
-- Short ADR-style entries: EKS vs ECS, Karpenter vs CA, ALB vs NLB+ingress-nginx,
-  NAT per AZ vs single, module choices. Context → decision → consequence.
-
-## Cost Estimate
-- Rough monthly cost table (EKS control plane, nodes, NAT, ALB) and the levers to reduce it.
-
-## Operations Runbook
-- Deploy, rollback, rotate, scale manually, debug a failing pod, break-glass access.
-
-## Testing & Validation
-- What runs in CI vs what you ran manually. How a reviewer can verify your claims quickly.
-
-## Future Improvements
-- Tier 3 items with a short design for each (multi-region, GitOps, policy as code, DR).
+- To tear everything down, (`cd platform/infrastructure && terraform destroy`). This should take care of everything.

@@ -27,11 +27,9 @@ jobs:
         working-directory: app/src
         run: go test ./...
 
-      # 2. Generate short SHA tag
       - name: Set Image Tag
         run: echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-#      # 3. AWS OIDC Auth & ECR Login
 #      - name: Configure AWS Credentials
 #        uses: aws-actions/configure-aws-credentials@v4
 #        with:
@@ -41,7 +39,6 @@ jobs:
 #      - name: Log in to ECR
 #        uses: aws-actions/amazon-ecr-login@v2
 #
-#      # 4. Build Docker image with cross-compilation target
 #      - name: Build and Push Docker Image
 #        working-directory: app/src
 #        run: |

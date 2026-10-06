@@ -38,6 +38,10 @@ spec:
             httpGet:
               path: /
               port: http-app
+          livenessProbe:
+            httpGet: { path: /, port: http-app }
+            initialDelaySeconds: 10
+            periodSeconds: 10
           resources:
             requests: {cpu: 50m, memory: 64Mi}
             limits: {memory: 128Mi}
@@ -68,6 +72,12 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:435957166704:certificate/842931b2-ccb6-4331-a1c6-d98b44f98028
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "10"
+    alb.ingress.kubernetes.io/healthy-threshold-count: "2"
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: "3"
+    alb.ingress.kubernetes.io/success-codes: "200"
+    alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=30
 spec:
   ingressClassName: alb
   rules:
