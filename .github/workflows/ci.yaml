@@ -50,20 +50,25 @@ jobs:
 #          docker push $REGISTRY:${{ env.TAG }}
 
       - name: Update deployment manifest
+        env:
+          APP_TAG: ${{ env.TAG }}
         run: |
-          MANIFEST="app/deploy/deploy.yaml"
+          MANIFEST="apps/deploy/deploy.yaml"
           IMAGE_URI="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:${{ env.TAG }}"
           
           # Set image
           yq -i ".spec.template.spec.containers[0].image = \"$IMAGE_URI\"" $MANIFEST
           
-          # Safely ensure env array exists and set APP_VERSION
+          # Safely ensure env array exists and update/append APP_VERSION using yq strenv
           yq -i '
             .spec.template.spec.containers[0].env //= [] |
-            (.spec.template.spec.containers[0].env[] | select(.name == "APP_VERSION").value) = "'"${{ env.TAG }}"'" //
-            .spec.template.spec.containers[0].env += [{"name": "APP_VERSION", "value": "'"${{ env.TAG }}"'"}]
+            if (.spec.template.spec.containers[0].env[] | select(.name == "APP_VERSION")) then
+              (.spec.template.spec.containers[0].env[] | select(.name == "APP_VERSION").value) = strenv(APP_TAG)
+            else
+              .spec.template.spec.containers[0].env += [{"name": "APP_VERSION", "value": strenv(APP_TAG)}]
+            end
           ' $MANIFEST
-
+      
       # 6. Commit back to repo for ArgoCD sync
       - name: Commit and push GitOps changes
         run: |
