@@ -43,12 +43,11 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: "1"
 
-      - name: Configure AWS credentials
-        if: github.ref == 'refs/heads/main'
+      - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::435957166704:role/main-github-ci
+          aws-region: eu-central-1
 
       - name: Log in to Amazon ECR
         id: ecr
