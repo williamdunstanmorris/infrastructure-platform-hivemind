@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - "deploy/**"
-      - "apps/deploy/**"
+      - "app/deploy/**"
       - "**.md"
 
 permissions:
@@ -51,7 +51,7 @@ jobs:
 
       - name: Update deployment manifest
         run: |
-          MANIFEST="apps/deploy/deploy.yaml"
+          MANIFEST="app/deploy/deploy.yaml"
           IMAGE_URI="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:${{ env.TAG }}"
           
           # Set image
@@ -69,5 +69,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add apps/deploy/deploy.yaml
+          git add app/deploy/deploy.yaml
           git diff-index --quiet HEAD || (git commit -m "deploy(gitops): update image tag to ${{ env.TAG }}" && git push)
