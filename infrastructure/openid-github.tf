@@ -17,12 +17,6 @@ data "aws_iam_policy_document" "github_ci_assume" {
       identifiers = [aws_iam_openid_connect_provider.github.arn]
     }
 
-    # Matches ANY repository under your GitHub username/org
-    condition {
-      test     = "StringLike"
-      variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:williamdunstanmorris/*"]
-    }
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
