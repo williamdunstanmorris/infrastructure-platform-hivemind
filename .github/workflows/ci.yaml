@@ -1,4 +1,5 @@
 name: ci-cd
+
 on:
   push:
     branches: [main]
@@ -7,41 +8,60 @@ on:
 
 permissions:
   id-token: write   # OIDC to AWS
-  contents: write   # commit the tag bump
+  contents: write   # Commit updated deploy tag
+
+# Run all shell steps inside app/src by default
+defaults:
+  run:
+    working-directory: app/src
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
-        with: { go-version-file: go.mod }
-      - run: cd app/src && go vet ./... && go test ./...
-      - run: cd app/src && docker build -t app:${{ github.sha }} .
-      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          go-version-file: app/src/go.mod
+
+      - name: Test Go app
+        run: go vet ./... && go test ./...
+
+      - name: Build Docker image
+        run: docker build -t app:${{ github.sha }} .
+
+      - name: Scan Docker image
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: app:${{ github.sha }}
           severity: CRITICAL,HIGH
           exit-code: "1"
 
-      # everything below runs on main only; PRs stop after the scan
-      - if: github.ref == 'refs/heads/main'
+      - name: Configure AWS credentials
+        if: github.ref == 'refs/heads/main'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-      - id: ecr
+
+      - name: Log in to Amazon ECR
+        id: ecr
         if: github.ref == 'refs/heads/main'
         uses: aws-actions/amazon-ecr-login@v2
-      - if: github.ref == 'refs/heads/main'
+
+      - name: Push image to ECR
+        if: github.ref == 'refs/heads/main'
         run: |
-          cd app/src
           TAG=${GITHUB_SHA::7}
           IMG=${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}
           docker tag app:${{ github.sha }} $IMG:$TAG
           docker push $IMG:$TAG
           echo "TAG=$TAG" >> $GITHUB_ENV
-      - if: github.ref == 'refs/heads/main'
+
+      - name: Update Helm values and push
+        if: github.ref == 'refs/heads/main'
+        working-directory: . # Switch back to root for deploy/ path & git commit
         run: |
           yq -i '.image.tag = strenv(TAG) | .helloTag = strenv(TAG)' deploy/values.yaml
           git config user.name "github-actions[bot]"
