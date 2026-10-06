@@ -48,6 +48,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::435957166704:role/main-github-ci
           aws-region: eu-central-1
+          role-session-name: ${{ github.job }}-${{ github.run_id }}
 
       - name: Log in to Amazon ECR
         id: ecr
