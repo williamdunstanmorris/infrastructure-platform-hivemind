@@ -49,10 +49,10 @@ jobs:
 #          docker build --platform linux/amd64 -t $REGISTRY:${{ env.TAG }} .
 #          docker push $REGISTRY:${{ env.TAG }}
 
-      # Update image tag in apps/deploy/deploy.yaml
+      # Update image tag in app/deploy/deploy.yaml
       - name: Update deployment image tag
         run: |
-          MANIFEST="apps/deploy/deploy.yaml"
+          MANIFEST="app/deploy/deploy.yaml"
           IMAGE_URI="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:${{ env.TAG }}"
           
           yq -i ".spec.template.spec.containers[0].image = \"$IMAGE_URI\"" $MANIFEST
