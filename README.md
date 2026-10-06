@@ -51,10 +51,11 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 ## Using the Service
 - The service exists as
-- To hit the endpoint
+- To hit the endpoint, I have created a dedicated https endpoint for this solution.
 ```
 curl -sS -i "https://hivemind.subcloudlabs.com/"
 ```
+- The ALB is created through the Kubernetes Ingress Object that is interacting with AWS ALB resources. It automatically resolves DNS upon recreation. I did this to remove future TLS and HTTP(s) connectivity overhead that is better handled with Terraform / AWS ACM. You can just focus on creating services without worrying about TLS now.
 - You could expand this by additional authentication on the ALB Load Balancer. Doing so would stop unwanted requests from entering Kubernetes.
 - You could expand this by adding WAF to the ALB for extra protection.
 - Utilising AWS ALB here has the advantage of not having an already-prescribed ACM certificate with AWS. Less Kubernetes overhead.
