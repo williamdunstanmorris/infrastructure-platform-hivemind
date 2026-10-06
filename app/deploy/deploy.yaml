@@ -27,9 +27,9 @@ spec:
               app.kubernetes.io/name: hivemind
       containers:
         - name: hivemind
-          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/main:latest   # pin a tag if you can find one
+          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:latest
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           readinessProbe:
             httpGet:
               path: /
