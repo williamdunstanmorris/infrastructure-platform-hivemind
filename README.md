@@ -100,9 +100,14 @@ How do you hit the endpoint? Example curl and expected output.
 This is currently trunk-based strategy. To deploy, either push or merge onto `main`.
 
 - GitHub workflow is used as the main CI, currently on being used on the main branch.
-- In team situations, you may want to have a workflow that lint, builds and tests on PRs before merging.
+- The pipeline will build, test.
+- The pipelines will then connect to AWS with OpenID Connect, login to docker and push to a private ECR
+- The pipeline injects the git-sha to the HELLO_TAG, injecting this the image version and the environment variable to the ApplicationSpec
+- ArgoCD automatically picks this up, and a new deployment on ArgoCD will then begin.
+- You can of course, then choose to roll-back on ArgoCD, or even on GitHub too. I would prefer to use Github for the full "CICD" experience here.
 - On deployments for continuous integration, built images that pass scans are pushed to ECR.
 - The app manifest for Kubernetes is updated by the Git workflow, which in turn is picked up by ArgoCD automatically.
+- In team situations, you may want to have a workflow that lint, builds and tests on PRs before merging.
 - Improvement: You could add manual tagging for human intervention, to control deployments rather than relying on full automation. Just a suggestion. 
 - Improvement: In team settings, `main` should not be pushed to, only PRs can merge into `main`. For this solution, a trunk-based works well though. I'm a one-man team right now ;)
 
