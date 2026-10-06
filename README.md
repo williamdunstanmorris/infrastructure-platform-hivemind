@@ -43,14 +43,19 @@ To provision the EKS cluster, you need to have a connection to EKS, which goes t
 ```
 cd platform && ./connect.sh
 ```
-Keep this window open to continue running any subsequent `kubectl`, `eksctl`, `helm` command tools that require connecting directly to the cluster.
+Keep this window open to continue running any subsequent `kubectl`, `eksctl`, `helm` command tools that require connecting directly to the cluster. 
+ArgoCD is installed on the cluster via Helm and managed with Terraform. Connect to it and access localhost:8080 on your browser. The temporary access is username: `admin` and password: `changeme123`
+```
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
 
 ## Using the Service
+- The service exists as
 - To hit the endpoint
 ```
-curl -sS -i "https://subcloudlabs.com/"
+curl -sS -i "https://hivemind.subcloudlabs.com/"
 ```
-- You could expand this by addition authentication on the ALB Load Balancer. Doing so would stop unwanted requests from entering Kubernetes.
+- You could expand this by additional authentication on the ALB Load Balancer. Doing so would stop unwanted requests from entering Kubernetes.
 - You could expand this by adding WAF to the ALB for extra protection.
 - Utilising AWS ALB here has the advantage of not having an already-prescribed ACM certificate with AWS. Less Kubernetes overhead.
 How do you hit the endpoint? Example curl and expected output.
