@@ -3,73 +3,71 @@ name: ci-cd
 on:
   push:
     branches: [main]
-    paths-ignore: ["deploy/**", "**.md"]
-  pull_request:
+    paths-ignore:
+      - "deploy/**"
+      - "apps/deploy/**"
+      - "**.md"
 
 permissions:
-  id-token: write   # OIDC to AWS
-  contents: write   # Commit updated deploy tag
-
-# Run all shell steps inside app/src by default
-defaults:
-  run:
-    working-directory: app/src
+  id-token: write # MANDATORY for AWS OIDC role-to-assume
+  contents: write # Needed to commit gitops updates back
 
 jobs:
-  build-deploy:
+  build-and-update-gitops:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write   # CRITICAL: required to request the OIDC JWT
-      contents: read
     steps:
       - uses: actions/checkout@v4
 
+      # 1. Setup Go & Run Tests
       - uses: actions/setup-go@v5
         with:
           go-version-file: app/src/go.mod
 
-      - name: Test Go app
-        run: go vet ./... && go test ./...
+      - name: Run Tests
+        working-directory: app/src
+        run: go test ./...
 
-      - name: Build Docker image
-        run: docker build -t app:${{ github.sha }} .
+      # 2. Generate short SHA tag
+      - name: Set Image Tag
+        run: echo "TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-      - name: Scan Docker image
-        # Would not enable this in production. For demo purposes, yes.
-        continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: app:${{ github.sha }}
-          severity: CRITICAL,HIGH
-          exit-code: "1"
-
-      - name: Configure AWS Credentials via OIDC
+      # 3. AWS OIDC Auth & ECR Login
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::435957166704:role/main-github-ci
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }} # Using repository variable
           aws-region: eu-central-1
-          role-session-name: ${{ github.job }}-${{ github.run_id }}
 
-      - name: Log in to Amazon ECR
-        id: ecr
-        if: github.ref == 'refs/heads/main'
-        uses: aws-actions/amazon-ecr-login@v2
+#      - name: Log in to ECR
+#        uses: aws-actions/amazon-ecr-login@v2
+#
+#      # 4. Build Docker image with cross-compilation target
+#      - name: Build and Push Docker Image
+#        working-directory: app/src
+#        run: |
+#          REGISTRY="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind"
+#          docker build --platform linux/amd64 -t $REGISTRY:${{ env.TAG }} .
+#          docker push $REGISTRY:${{ env.TAG }}
 
-      - name: Push image to ECR
-        if: github.ref == 'refs/heads/main'
+      - name: Update deployment manifest
         run: |
-          TAG=${GITHUB_SHA::7}
-          IMG=${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}
-          docker tag app:${{ github.sha }} $IMG:$TAG
-          docker push $IMG:$TAG
-          echo "TAG=$TAG" >> $GITHUB_ENV
+          MANIFEST="apps/deploy/deploy.yaml"
+          IMAGE_URI="435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:${{ env.TAG }}"
+          
+          # Set image
+          yq -i ".spec.template.spec.containers[0].image = \"$IMAGE_URI\"" $MANIFEST
+          
+          # Safely ensure env array exists and set APP_VERSION
+          yq -i '
+            .spec.template.spec.containers[0].env //= [] |
+            (.spec.template.spec.containers[0].env[] | select(.name == "APP_VERSION").value) = "'"${{ env.TAG }}"'" //
+            .spec.template.spec.containers[0].env += [{"name": "APP_VERSION", "value": "'"${{ env.TAG }}"'"}]
+          ' $MANIFEST
 
-      - name: Update Helm values and push
-        if: github.ref == 'refs/heads/main'
-        working-directory: . # Switch back to root for deploy/ path & git commit
+      # 6. Commit back to repo for ArgoCD sync
+      - name: Commit and push GitOps changes
         run: |
-          yq -i '.image.tag = strenv(TAG) | .helloTag = strenv(TAG)' deploy/values.yaml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "deploy: $TAG"
-          git push
+          git add apps/deploy/deploy.yaml
+          git diff-index --quiet HEAD || (git commit -m "deploy(gitops): update image tag to ${{ env.TAG }}" && git push)

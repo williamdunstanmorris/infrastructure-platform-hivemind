@@ -9,7 +9,7 @@ metadata:
   name: hivemind-deployment
   namespace: hivemind-production
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
       app.kubernetes.io/name: hivemind
@@ -18,7 +18,7 @@ spec:
       labels:
         app.kubernetes.io/name: hivemind
     spec:
-      topologySpreadConstraints:          # spread pods across AZs
+      topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
           whenUnsatisfiable: ScheduleAnyway
@@ -28,6 +28,11 @@ spec:
       containers:
         - name: hivemind
           image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:latest
+          env:
+          - name: HELLO_TAG
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.containers[?(@.name=='hivemind')].image
           ports:
             - name: http-app
               containerPort: 8080
