@@ -122,7 +122,7 @@ spec:
     kind: Deployment
     name: hivemind-deployment
   minReplicas: 6
-  maxReplicas: 12
+  maxReplicas: 36
   metrics:
     - type: Resource
       resource:
