@@ -9,7 +9,6 @@ metadata:
   name: hivemind-deployment
   namespace: hivemind-production
 spec:
-  replicas: 4
   selector:
     matchLabels:
       app.kubernetes.io/name: hivemind
@@ -21,6 +20,14 @@ spec:
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: hivemind
+          matchLabelKeys:
+            - pod-template-hash
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
@@ -91,3 +98,35 @@ spec:
                 name: hivemind-service
                 port:
                   number: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: hivemind
+  namespace: hivemind-production
+spec:
+  # Drains evict one pod at a time. Used during
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hivemind
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hivemind
+  namespace: hivemind-production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hivemind-deployment
+  minReplicas: 6
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
