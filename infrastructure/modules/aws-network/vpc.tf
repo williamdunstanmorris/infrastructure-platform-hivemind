@@ -3,7 +3,7 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   enable_dns_support   = true
   ipv4_netmask_length  = var.ipv4_netmark_length
-  cidr_block           = "172.0.0.0/22"
+  cidr_block           = "172.16.0.0/22"
   tags = {
     Name = "Main"
   }
