@@ -37,3 +37,7 @@ override.tf.json
 terraform.rc
 
 .idea
+# Repo-local kubeconfig written by platform/connect.sh
+.kubeconfig
+
+.envrc
