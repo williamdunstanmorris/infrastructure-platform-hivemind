@@ -68,8 +68,19 @@ resource "helm_release" "aws_lb_controller" {
   version    = "1.14.0" # chart for controller v2.14.1, matches the IAM policy file in infra/
   namespace  = "kube-system"
 
-  set = [
-    { name = "clusterName", value = data.aws_eks_cluster.main.name },
+  values = [yamlencode({
+    clusterName = data.aws_eks_cluster.main.name
+    # Explicit: can't always be discovered from IMDS when access is restricted.
+    region = local.region
+    vpcId  = data.aws_eks_cluster.main.vpc_config[0].vpc_id
+    # IRSA: chart creates the service account annotated with the IAM role.
+    serviceAccount = {
+      create      = true
+      name        = "aws-load-balancer-controller" # must match the role's trust policy `sub`
+      annotations = { "eks.amazonaws.com/role-arn" = data.aws_iam_role.lb_controller.arn }
+    }
+  })]
+}
 
 resource "helm_release" "external_dns" {
   name       = "external-dns"
