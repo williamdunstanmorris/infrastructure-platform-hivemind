@@ -9,10 +9,6 @@ terraform {
       source  = "integrations/github",
       version = "~> 6.0"
     }
-    argocd = {
-      source  = "argoproj-labs/argocd"
-      version = "7.2.0"
-    }
     helm = {
       source  = "hashicorp/helm"
       version = "3.2.0"
