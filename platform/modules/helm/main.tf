@@ -57,6 +57,8 @@ resource "helm_release" "argo_cd" {
       value = var.argocd_admin_password_bcrypt
     }
   ]
+
+  depends_on = [helm_release.aws_lb_controller, helm_release.external_dns]
 }
 
 resource "helm_release" "aws_lb_controller" {
