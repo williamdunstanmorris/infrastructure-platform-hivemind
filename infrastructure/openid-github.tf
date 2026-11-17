@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "github_ci_assume" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:williamdunstanmorris@19186530/infrastructure-platform-hivemind@1407113499:ref:refs/heads/main"]
+      values   = ["repo:williamdunstanmorris@19186530/CrateCLI@1460011781:ref:refs/heads/main"]
     }
     condition {
       test     = "StringEquals"
