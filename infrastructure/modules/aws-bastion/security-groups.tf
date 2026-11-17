@@ -7,7 +7,8 @@ resource "aws_security_group" "bastion" {
 resource "aws_vpc_security_group_egress_rule" "bastion_https_vpc" {
   security_group_id = aws_security_group.bastion.id
   description       = "Outbound HTTPS to SSM endpoints and EKS API inside the VPC"
-  cidr_ipv4         = data.aws_vpc.main.cidr_block
+  cidr_ipv4         = "0.0.0.0/0"
+  # Try -1, and then remove from and to ports. It should be able to egress everywhere.
   ip_protocol       = "tcp"
   from_port         = 443
   to_port           = 443

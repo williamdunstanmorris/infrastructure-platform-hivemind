@@ -25,28 +25,3 @@ resource "aws_instance" "bastion" {
     Name = "bastion"
   }
 }
-
-resource "aws_security_group" "ssm_endpoints" {
-  name        = "bastion-ssm-endpoints"
-  description = "HTTPS from the bastion to SSM VPC endpoints"
-  vpc_id      = data.aws_vpc.main.id
-}
-
-resource "aws_vpc_security_group_ingress_rule" "ssm_endpoints_from_bastion" {
-  security_group_id            = aws_security_group.ssm_endpoints.id
-  referenced_security_group_id = aws_security_group.bastion.id
-  ip_protocol                  = "tcp"
-  from_port                    = 443
-  to_port                      = 443
-}
-
-resource "aws_vpc_endpoint" "ssm" {
-  for_each = toset(["ssm", "ssmmessages", "ec2messages"])
-
-  vpc_id              = data.aws_vpc.main.id
-  service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.value}"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = data.aws_subnets.private_subnets_ids.ids
-  security_group_ids  = [aws_security_group.ssm_endpoints.id]
-  private_dns_enabled = true
-}
