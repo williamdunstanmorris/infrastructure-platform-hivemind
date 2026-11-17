@@ -27,3 +27,9 @@ variable "node_desired_size" {
   type    = number
   default = 3
 }
+
+variable "hosted_zone_arn" {
+  type        = string
+  description = "Route53 zone ExternalDNS may write to"
+}
+

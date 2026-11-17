@@ -14,3 +14,7 @@ output "eks_api_host" {
   description = "Hostname for the SSM port-forward and kubeconfig tls-server-name"
   value       = replace(aws_eks_cluster.main.endpoint, "https://", "")
 }
+
+output "lb_controller_role_arn" {
+  value = aws_iam_role.lb_controller.arn
+}

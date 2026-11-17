@@ -75,7 +75,26 @@ resource "aws_iam_role_policy_attachment" "lb_controller" {
   policy_arn = aws_iam_policy.lb_controller.arn
 }
 
-output "lb_controller_role_arn" {
-  value = aws_iam_role.lb_controller.arn
+resource "aws_iam_role" "external_dns" {
+  name               = "${aws_eks_cluster.main.name}ExternalDNS"
+  assume_role_policy = data.aws_iam_policy_document.external_dns_assume.json
 }
 
+resource "aws_iam_role_policy" "external_dns" {
+  role = aws_iam_role.external_dns.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      { # write only to your zone
+        Effect   = "Allow"
+        Action   = ["route53:ChangeResourceRecordSets"]
+        Resource = [var.hosted_zone_arn]
+      },
+      { # discovery is account-wide by API design
+        Effect   = "Allow"
+        Action   = ["route53:ListHostedZones", "route53:ListResourceRecordSets", "route53:ListTagsForResources"]
+        Resource = ["*"]
+      },
+    ]
+  })
+}
