@@ -3,8 +3,6 @@ resource "aws_eks_cluster" "main" {
   role_arn = aws_iam_role.eks_role.arn
   version  = var.cluster_version
 
-
-
   vpc_config {
     subnet_ids = data.aws_subnets.private_subnets_ids.ids
     # Reach the API via the VPC. Always on. Access API via SSMSessionManager.
@@ -39,12 +37,13 @@ resource "aws_eks_node_group" "workload" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "app"
   node_role_arn   = aws_iam_role.node.arn
-
   # Private subnets across 3 AZs: the ASG behind the node group balances nodes
   # across them. GKE: you used a single zone via `location`.
   subnet_ids = data.aws_subnets.private_subnets_ids.ids
 
   instance_types = var.node_instance_types
+  # To save costs for now, best use this. Intermittent though.
+  capacity_type = "SPOT"
 
   # GKE: autoscaling { min/max } + initial_node_count.
   # NOTE: this only sets ASG bounds. Something must actually scale it:
