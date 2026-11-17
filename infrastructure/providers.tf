@@ -1,8 +1,8 @@
 provider "aws" {
-  profile = "hivemind"
+  profile = "hm-william"
   default_tags {
     tags = {
-      Owner = "Will Morris"
+      Owner = "William Morris"
     }
   }
 }
