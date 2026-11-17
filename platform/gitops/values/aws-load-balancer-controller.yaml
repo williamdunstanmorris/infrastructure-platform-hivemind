@@ -1,0 +1,5 @@
+clusterName: Main
+region: eu-central-1
+vpcTags: { Name: Main }          # controller finds the VPC by tag, so no vpcId passed in
+serviceAccount:
+  name: aws-load-balancer-controller   # role bound via EKS Pod Identity, no role-arn annotation

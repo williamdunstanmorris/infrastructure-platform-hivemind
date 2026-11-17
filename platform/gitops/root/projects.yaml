@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata: { name: platform, namespace: argocd }
+spec:
+  sourceRepos: ["*"]                       # charts from many repos
+  destinations: [{ server: https://kubernetes.default.svc, namespace: "*" }]
+  clusterResourceWhitelist: [{ group: "*", kind: "*" }]   # CRDs, webhooks, ClusterRoles
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata: { name: workloads, namespace: argocd }
+spec:
+  sourceRepos: [https://github.com/williamdunstanmorris/CrateCLI]
+  destinations: [{ server: https://kubernetes.default.svc, namespace: hivemind }]
+  clusterResourceWhitelist: [{ group: "", kind: Namespace }]
