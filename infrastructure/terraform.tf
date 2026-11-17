@@ -14,11 +14,11 @@ terraform {
       version = "3.2.0"
     }
   }
-
   backend "s3" {
-    bucket  = "terraform-435957166704-eu-central-1-an"
-    key     = "infrastructure/tf-state.json"
-    profile = "hivemind"
-    region  = "eu-central-1"
+    bucket       = "terraform-479592483600-eu-central-1-an"
+    key          = "infrastructure/tf-state.json"
+    region       = "eu-central-1"
+    encrypt      = true
+    use_lockfile = true
   }
 }
