@@ -1,3 +1,26 @@
+locals {
+  region = "eu-central-1"
+  domain = "subcloudlabs.com"
+
+  # Every Ingress joining the shared ALB must agree on these (they are ALB-wide settings).
+  # TLS: the ACM wildcard cert is auto-discovered from each Ingress host, so no certificate-arn here.
+  shared_alb_annotations = {
+    "alb.ingress.kubernetes.io/group.name"         = "shared"
+    "alb.ingress.kubernetes.io/load-balancer-name" = "shared-alb"
+    "alb.ingress.kubernetes.io/scheme"             = "internet-facing"
+    "alb.ingress.kubernetes.io/target-type"        = "ip"
+    "alb.ingress.kubernetes.io/listen-ports"       = jsonencode([{ HTTP = 80 }, { HTTPS = 443 }])
+    "alb.ingress.kubernetes.io/ssl-redirect"       = "443"
+  }
+
+  # Listener-rule condition restricting a backend service to admin IPs.
+  # Per-rule, unlike inbound-cidrs, which would lock down the whole shared ALB.
+  admin_only = jsonencode([{
+    field          = "source-ip"
+    sourceIpConfig = { values = var.admin_allowed_cidrs }
+  }])
+}
+
 resource "helm_release" "argo_cd" {
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
