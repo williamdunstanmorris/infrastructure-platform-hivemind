@@ -24,10 +24,10 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_main_route_table_association" "public_traffic" {
-  vpc_id         = aws_vpc.main.id
-  route_table_id = aws_route_table.public.id
-}
+# resource "aws_main_route_table_association" "public_traffic" {
+#   vpc_id         = aws_vpc.main.id
+#   route_table_id = aws_route_table.public.id
+# }
 
 resource "aws_route_table_association" "public_subnet" {
   count          = local.number_public_subnets
