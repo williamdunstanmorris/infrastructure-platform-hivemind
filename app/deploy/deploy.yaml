@@ -17,27 +17,30 @@ spec:
       labels:
         app.kubernetes.io/name: hivemind
     spec:
+      # Address two different failure points with spread here
       topologySpreadConstraints:
+        # Survive losing a whole AZ: keep pods evenly spread across zones (enforced)
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
           whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: hivemind
-          matchLabelKeys:
-            - pod-template-hash
+          matchLabelKeys: [pod-template-hash]   # judge each rollout's pods on their own
+        # Survive losing a single node: avoid stacking pods on one node (best effort)
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: hivemind
+          matchLabelKeys: [pod-template-hash]
       containers:
         - name: hivemind
-          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:1190ced
+          image: 435957166704.dkr.ecr.eu-central-1.amazonaws.com/hivemind:79b892c
           env:
             - name: HELLO_TAG
-              value: 1190ced
+              value: 79b892c
           ports:
             - name: http-app
               containerPort: 8080
@@ -100,12 +103,13 @@ spec:
                   number: 80
 ---
 apiVersion: policy/v1
+# Limits the number of replicated application pods that can be simultaneously down during a voluntary disruption
 kind: PodDisruptionBudget
 metadata:
   name: hivemind
   namespace: hivemind-production
 spec:
-  # Drains evict one pod at a time. Used during
+  # Drains evict one pod at a time. Used during a voluntary node upgrade.
   maxUnavailable: 1
   selector:
     matchLabels:
@@ -122,7 +126,7 @@ spec:
     kind: Deployment
     name: hivemind-deployment
   minReplicas: 6
-  maxReplicas: 36
+  maxReplicas: 20
   metrics:
     - type: Resource
       resource:
@@ -130,3 +134,26 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore
+metadata:
+  name: aws-secrets-manager
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: eu-central-1
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: hivemind
+  namespace: hivemind-production
+spec:
+  refreshInterval: 1h
+  secretStoreRef: { name: aws-secrets-manager, kind: ClusterSecretStore }
+  target: { name: hivemind-secrets }
+  data:
+    - secretKey: API_KEY
+      remoteRef: { key: hivemind/production/api-key }
