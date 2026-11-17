@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/williamdunstanmorris/infrastructure-platform-hivemind
+    repoURL: https://github.com/williamdunstanmorris/CrateCLI
     targetRevision: HEAD
-    path: app/deploy
+    path: deploy
   destination: 
     server: https://kubernetes.default.svc 
     namespace: hivemind
