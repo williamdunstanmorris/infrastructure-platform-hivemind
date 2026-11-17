@@ -28,6 +28,29 @@ resource "helm_release" "argo_cd" {
   version          = "9.5.15"
   create_namespace = true
   namespace        = "argocd"
+
+  values = [yamlencode({
+    global = { domain = "argo.${local.domain}" }
+
+    # ALB terminates TLS; argocd-server serves plain HTTP behind it.
+    configs = { params = { "server.insecure" = true } }
+
+    server = {
+      ingress = {
+        enabled          = true
+        controller       = "aws" # chart adds a gRPC service + rule so the argocd CLI works through the ALB
+        ingressClassName = "alb"
+        aws              = { serviceType = "ClusterIP" } # target-type ip needs no NodePort
+        annotations = merge(local.shared_alb_annotations, {
+          "alb.ingress.kubernetes.io/healthcheck-path"         = "/healthz"
+          "alb.ingress.kubernetes.io/conditions.argocd-server" = local.admin_only
+          # The gRPC rule (argocd-server-grpc) carries the chart's own Content-Type condition
+          # and cannot take a second one; it stays reachable but still requires Argo CD auth.
+        })
+      }
+    }
+  })]
+
   set_sensitive = [
     {
       name  = "configs.secret.argocdServerAdminPassword"
