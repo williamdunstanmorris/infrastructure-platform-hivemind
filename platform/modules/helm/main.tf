@@ -143,3 +143,10 @@ resource "helm_release" "kargo" {
     }
   })]
 
+  set_sensitive = [
+    { name = "api.adminAccount.passwordHash", value = var.kargo_admin_password_hash },
+    { name = "api.adminAccount.tokenSigningKey", value = var.kargo_token_signing_key },
+  ]
+
+  depends_on = [helm_release.cert_manager, helm_release.aws_lb_controller, helm_release.external_dns]
+}
