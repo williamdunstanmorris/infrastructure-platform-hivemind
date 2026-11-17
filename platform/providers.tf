@@ -1,15 +1,16 @@
 provider "aws" {
-  profile = "hivemind"
+  region = "eu-central-1"
   default_tags {
     tags = {
-      Owner = "Will Morris"
+      Owner = "William Morris"
     }
   }
 }
 
+# Explicit repo-local kubeconfig (written by connect.sh), never ~/.kube/config.
 provider "helm" {
   kubernetes = {
-    config_path = "~/.kube/config"
+    config_path = "${path.module}/.kubeconfig"
   }
 }
 
