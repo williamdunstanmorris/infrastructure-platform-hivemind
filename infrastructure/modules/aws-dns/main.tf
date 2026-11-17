@@ -1,5 +1,7 @@
 resource "aws_route53_zone" "main" {
   name = "subcloudlabs.com"
+  # This is a nice way to fix the namespace names - if you have an external domain registrar, you don't have to re-add
+  delegation_set_id = "N01395153DB0OHFSSFVQV"
 }
 
 resource "aws_acm_certificate" "certification" {
