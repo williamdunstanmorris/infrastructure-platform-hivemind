@@ -30,10 +30,20 @@ resource "helm_release" "argo_cd" {
   namespace        = "argocd"
 
   values = [yamlencode({
-    global = { domain = "argo.${local.domain}" }
-
-    # ALB terminates TLS; argocd-server serves plain HTTP behind it.
-    configs = { params = { "server.insecure" = true } }
+    configs = {
+      cm = {
+        # Lets Argo CD judge whether a child Application is healthy.
+        # Without this, sync waves don't wait for the previous wave to be ready.
+        "resource.customizations.health.argoproj.io_Application" = <<-EOT
+          hs = { status = "Progressing", message = "" }
+          if obj.status ~= nil and obj.status.health ~= nil then
+            hs.status = obj.status.health.status
+            hs.message = obj.status.health.message or ""
+          end
+          return hs
+        EOT
+      }
+    }
 
     server = {
       ingress = {
