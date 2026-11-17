@@ -1,14 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
-metadata: { name: platform, namespace: argocd }
+metadata:
+  name: platform,
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
-  sourceRepos: ["*"]                       # charts from many repos
+  sourceRepos: ["*"]
   destinations: [{ server: https://kubernetes.default.svc, namespace: "*" }]
   clusterResourceWhitelist: [{ group: "*", kind: "*" }]   # CRDs, webhooks, ClusterRoles
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
-metadata: { name: workloads, namespace: argocd }
+metadata:
+  name: workloads
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   sourceRepos: [https://github.com/williamdunstanmorris/CrateCLI]
   destinations: [{ server: https://kubernetes.default.svc, namespace: hivemind }]
