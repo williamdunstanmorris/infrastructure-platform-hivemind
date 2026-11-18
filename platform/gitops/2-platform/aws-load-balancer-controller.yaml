@@ -1,23 +1,35 @@
-#apiVersion: argoproj.io/v1alpha1
-#kind: Application
-#metadata:
-#  name: aws-load-balancer-controller
-#  namespace: argocd
-#  finalizers: [resources-finalizer.argocd.argoproj.io]
-#  annotations:
-#    argocd.argoproj.io/sync-wave: "-1"     # created first, deleted last: no orphaned ALB
-#spec:
-#  project: platform
-#  destination: { server: https://kubernetes.default.svc, namespace: kube-system }
-#  sources:
-#    - repoURL: https://aws.github.io/eks-charts
-#      chart: aws-load-balancer-controller
-#      targetRevision: 1.14.0
-#      helm:
-#        valueFiles: [$values/platform/gitops/values/aws-load-balancer-controller.yaml]
-#    - repoURL: https://github.com/williamdunstanmorris/infrastructure-platform-hivemind
-#      targetRevision: HEAD
-#      ref: values
-#  syncPolicy:
-#    automated: { prune: true, selfHeal: true }
-#    syncOptions: [ServerSideApply=true]
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aws-load-balancer-controller
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"     # created first, deleted last: no orphaned ALB
+spec:
+  project: platform
+  destination: { server: https://kubernetes.default.svc, namespace: kube-system }
+  sources:
+    - repoURL: https://aws.github.io/eks-charts
+      chart: aws-load-balancer-controller
+      targetRevision: 1.14.0
+      helm:
+        valueFiles: [$values/platform/gitops/values/aws-load-balancer-controller.yaml]
+    - repoURL: https://github.com/williamdunstanmorris/infrastructure-platform-hivemind
+      targetRevision: HEAD
+      ref: values
+  # The chart generates a fresh webhook cert on every render. Without this, the app is
+  # permanently OutOfSync and self-heal keeps rotating the cert.
+  ignoreDifferences:
+    - kind: Secret
+      name: aws-load-balancer-tls
+      jsonPointers: [/data]
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions: [".webhooks[]?.clientConfig.caBundle"]
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions: [".webhooks[]?.clientConfig.caBundle"]
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [ServerSideApply=true, RespectIgnoreDifferences=true]
