@@ -1,12 +1,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: hivemind
+  name: crate
   namespace: argocd
   finalizers: [resources-finalizer.argocd.argoproj.io]
 spec:
   project: workloads           # ← the restricted project goes here
-  destination: { server: https://kubernetes.default.svc, namespace: hivemind }
+  destination: { server: https://kubernetes.default.svc, namespace: crate }
   source:
     repoURL: https://github.com/williamdunstanmorris/CrateCLI
     targetRevision: HEAD
