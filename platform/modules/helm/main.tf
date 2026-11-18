@@ -21,32 +21,36 @@ resource "helm_release" "argo_cd" {
         EOT
       }
     }
-
-    # Extra Kubernetes objects the chart installs alongside Argo CD.
-    # This is the root Application: it points Argo CD at platform/gitops/root in git,
-    # and from there Argo CD installs everything else.
-    extraObjects = [{
-      apiVersion = "argoproj.io/v1alpha1"
-      kind       = "Application"
-      metadata = {
-        name       = "root"
-        namespace  = "argocd"
-        finalizers = ["resources-finalizer.argocd.argoproj.io"]
-      }
-      spec = {
-        project     = "default"
-        destination = { server = "https://kubernetes.default.svc", namespace = "argocd" }
-        source = {
-          repoURL        = "https://github.com/williamdunstanmorris/infrastructure-platform-hivemind"
-          targetRevision = "HEAD"
-          path           = "platform/gitops/root"
-        }
-        syncPolicy = { automated = { prune = true, selfHeal = true } }
-      }
-    }]
   })]
 
   set_sensitive = [
     { name = "configs.secret.argocdServerAdminPassword", value = var.argocd_admin_password_bcrypt },
   ]
+}
+
+resource "helm_release" "argocd_apps" {
+  name       = "argocd-apps"
+  repository = "https://argoproj.github.io/argo-helm"
+  chart      = "argocd-apps"
+  version    = "2.0.8"
+  namespace  = "argocd"
+
+  values = [yamlencode({
+    applications = {
+      root = {
+        namespace   = "argocd"
+        finalizers  = ["resources-finalizer.argocd.argoproj.io"]
+        project     = "default"
+        destination = { server = "https://kubernetes.default.svc", namespace = "argocd" }
+        source = {
+          repoURL        = "https://github.com/williamdunstanmorris/infrastructure-platform-hivemind"
+          targetRevision = "HEAD"
+          path           = "platform/gitops/1-root"
+        }
+        syncPolicy = { automated = { prune = true, selfHeal = true } }
+      }
+    }
+  })]
+
+  depends_on = [helm_release.argo_cd]
 }

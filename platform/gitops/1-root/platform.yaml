@@ -10,6 +10,6 @@ spec:
   source:
     repoURL: https://github.com/williamdunstanmorris/infrastructure-platform-hivemind
     targetRevision: HEAD
-    path: platform/gitops/platform
+    path: platform/gitops/2-platform
   syncPolicy:
     automated: { prune: true, selfHeal: true }
