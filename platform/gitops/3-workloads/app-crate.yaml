@@ -1,16 +1,18 @@
-#apiVersion: argoproj.io/v1alpha1
-#kind: Application
-#metadata:
-#  name: hivemind
-#  namespace: argocd
-#  finalizers: [resources-finalizer.argocd.argoproj.io]
-#spec:
-#  project: workloads           # ← the restricted project goes here
-#  destination: { server: https://kubernetes.default.svc, namespace: hivemind }
-#  source:
-#    repoURL: https://github.com/williamdunstanmorris/CrateCLI
-#    targetRevision: HEAD
-#    path: deploy
-#  syncPolicy:
-#    automated: { prune: true, selfHeal: true }
-#    syncOptions: [CreateNamespace=true]
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hivemind
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: workloads           # ← the restricted project goes here
+  destination: { server: https://kubernetes.default.svc, namespace: hivemind }
+  source:
+    repoURL: https://github.com/williamdunstanmorris/CrateCLI
+    targetRevision: HEAD
+    path: deploy
+    directory:
+      exclude: "local/*"
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]

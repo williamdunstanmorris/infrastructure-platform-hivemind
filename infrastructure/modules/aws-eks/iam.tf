@@ -67,7 +67,7 @@ resource "aws_iam_policy" "lb_controller" {
 
 resource "aws_iam_role" "lb_controller" {
   name               = "${aws_eks_cluster.main.name}ALBEKSController"
-  assume_role_policy = data.aws_iam_policy_document.lb_controller_assume.json
+  assume_role_policy = data.aws_iam_policy_document.pod_identity_assume.json
 }
 
 resource "aws_iam_role_policy_attachment" "lb_controller" {
@@ -77,7 +77,7 @@ resource "aws_iam_role_policy_attachment" "lb_controller" {
 
 resource "aws_iam_role" "external_dns" {
   name               = "${aws_eks_cluster.main.name}ExternalDNS"
-  assume_role_policy = data.aws_iam_policy_document.external_dns_assume.json
+  assume_role_policy = data.aws_iam_policy_document.pod_identity_assume.json
 }
 
 resource "aws_iam_role_policy" "external_dns" {
@@ -97,4 +97,20 @@ resource "aws_iam_role_policy" "external_dns" {
       },
     ]
   })
+}
+
+# Binds namespace/serviceaccount → role. Replaces the IRSA role-arn annotation,
+# so the Helm values in git contain no ARNs.
+resource "aws_eks_pod_identity_association" "lb_controller" {
+  cluster_name    = aws_eks_cluster.main.name
+  namespace       = "kube-system"
+  service_account = "aws-load-balancer-controller"
+  role_arn        = aws_iam_role.lb_controller.arn
+}
+
+resource "aws_eks_pod_identity_association" "external_dns" {
+  cluster_name    = aws_eks_cluster.main.name
+  namespace       = "kube-system"
+  service_account = "external-dns"
+  role_arn        = aws_iam_role.external_dns.arn
 }

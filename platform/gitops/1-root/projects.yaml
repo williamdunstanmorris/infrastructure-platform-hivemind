@@ -19,5 +19,5 @@ metadata:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
   sourceRepos: [https://github.com/williamdunstanmorris/CrateCLI]
-  destinations: [{ server: https://kubernetes.default.svc, namespace: hivemind }]
+  destinations: [{ server: https://kubernetes.default.svc, namespace: crate }]
   clusterResourceWhitelist: [{ group: "", kind: Namespace }]
