@@ -1,0 +1,11 @@
+provider:
+  name: aws
+env:
+  - name: AWS_DEFAULT_REGION
+    value: eu-central-1
+domainFilters: [subcloudlabs.com]
+sources: [ingress]
+policy: sync          # removes its records when the Ingress goes away: clean teardown
+txtOwnerId: Main      # only touches records it created
+serviceAccount:
+  name: external-dns  # bound via Pod Identity
