@@ -42,7 +42,7 @@ resource "aws_eks_node_group" "workload" {
   subnet_ids = data.aws_subnets.private_subnets_ids.ids
 
   instance_types = var.node_instance_types
-  # To save costs for now, best use this. Intermittent though.
+  # To save costs for now, best use this. Intermittent though...
   capacity_type = "SPOT"
 
   # GKE: autoscaling { min/max } + initial_node_count.
