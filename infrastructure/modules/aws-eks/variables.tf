@@ -10,7 +10,7 @@ variable "cluster_version" {
 
 variable "node_instance_types" {
   type    = list(string)
-  default = ["t3a.small"] # roughly e2-medium (2 vCPU / 4 GiB)
+  default = ["t3a.medium"] # roughly e2-medium (2 vCPU / 4 GiB)
 }
 
 variable "node_min_size" {

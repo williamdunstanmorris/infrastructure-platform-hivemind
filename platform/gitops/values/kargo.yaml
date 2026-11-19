@@ -1,0 +1,5 @@
+api:
+  adminAccount:
+    enabled: true
+  secret:
+    name: kargo-admin        # the Secret from 1b, so no password material in git
