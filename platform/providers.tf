@@ -13,3 +13,7 @@ provider "helm" {
     config_path = "${path.module}/.kubeconfig"
   }
 }
+
+provider "kubernetes" {
+  config_path = "${path.module}/.kubeconfig"
+}

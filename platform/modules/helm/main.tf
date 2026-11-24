@@ -25,6 +25,12 @@ resource "helm_release" "argo_cd" {
 
   set_sensitive = [
     { name = "configs.secret.argocdServerAdminPassword", value = var.argocd_admin_password_bcrypt },
+    # Repo credential for the private CrateCLI repo: the chart renders it as a
+    # Secret labelled argocd.argoproj.io/secret-type=repository.
+    { name = "configs.repositories.cratecli.url", value = "https://github.com/williamdunstanmorris/CrateCLI" },
+    { name = "configs.repositories.cratecli.type", value = "git" },
+    { name = "configs.repositories.cratecli.username", value = "williamdunstanmorris" },
+    { name = "configs.repositories.cratecli.password", value = var.cratecli_repo_token },
   ]
 }
 
