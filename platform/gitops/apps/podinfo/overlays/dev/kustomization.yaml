@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: podinfo-dev
+resources: [../../base]
+images:
+  - name: ghcr.io/stefanprodan/podinfo
+    newTag: 6.7.0            # ← Kargo will rewrite this line on promotion
+patches:
+  - target: { kind: Ingress, name: podinfo }
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: podinfo-dev.subcloudlabs.com

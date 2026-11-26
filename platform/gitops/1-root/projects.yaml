@@ -18,6 +18,10 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
-  sourceRepos: [https://github.com/williamdunstanmorris/CrateCLI]
-  destinations: [{ server: https://kubernetes.default.svc, namespace: crate }]
+  sourceRepos:
+    - https://github.com/williamdunstanmorris/CrateCLI
+    - https://github.com/williamdunstanmorris/infrastructure-platform-hivemind
+  destinations:
+    - { server: https://kubernetes.default.svc, namespace: crate }
+    - { server: https://kubernetes.default.svc, namespace: "podinfo-*" }
   clusterResourceWhitelist: [{ group: "", kind: Namespace }]

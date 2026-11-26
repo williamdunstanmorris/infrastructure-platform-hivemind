@@ -30,7 +30,6 @@ resource "helm_release" "argo_cd" {
     { name = "configs.repositories.cratecli.url", value = "https://github.com/williamdunstanmorris/CrateCLI" },
     { name = "configs.repositories.cratecli.type", value = "git" },
     { name = "configs.repositories.cratecli.username", value = "williamdunstanmorris" },
-    { name = "configs.repositories.cratecli.password", value = var.cratecli_repo_token },
   ]
 }
 

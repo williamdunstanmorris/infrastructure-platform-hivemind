@@ -22,9 +22,3 @@ variable "admin_allowed_cidrs" {
   type        = list(string)
   description = "e.g. [\"203.0.113.7/32\"] - your public IP"
 }
-
-variable "cratecli_repo_token" {
-  type        = string
-  sensitive   = true
-  description = "Fine-grained PAT, CrateCLI only, Contents: read"
-}

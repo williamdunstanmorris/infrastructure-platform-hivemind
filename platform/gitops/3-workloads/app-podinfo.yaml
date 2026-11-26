@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: podinfo-dev
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+  annotations:
+    kargo.akuity.io/authorized-stage: podinfo:dev   # <kargo-project>:<stage>
+spec:
+  project: workloads
+  destination: { server: https://kubernetes.default.svc, namespace: podinfo-dev }
+  source:
+    repoURL: https://github.com/williamdunstanmorris/infrastructure-platform-hivemind
+    targetRevision: HEAD
+    path: platform/gitops/apps/podinfo/overlays/dev
+  syncPolicy:
+    syncOptions: [CreateNamespace=true]   # no `automated:` — Kargo triggers syncs
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: podinfo-staging
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+  annotations:
+    kargo.akuity.io/authorized-stage: podinfo:staging   # <kargo-project>:<stage>
+spec:
+  project: workloads
+  destination: { server: https://kubernetes.default.svc, namespace: podinfo-staging }
+  source:
+    repoURL: https://github.com/williamdunstanmorris/infrastructure-platform-hivemind
+    targetRevision: HEAD
+    path: platform/gitops/apps/podinfo/overlays/staging
+  syncPolicy:
+    syncOptions: [CreateNamespace=true]   # no `automated:` — Kargo triggers syncs
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: podinfo-prod
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+  annotations:
+    kargo.akuity.io/authorized-stage: podinfo:prod   # <kargo-project>:<stage>
+spec:
+  project: workloads
+  destination: { server: https://kubernetes.default.svc, namespace: podinfo-prod }
+  source:
+    repoURL: https://github.com/williamdunstanmorris/infrastructure-platform-hivemind
+    targetRevision: HEAD
+    path: platform/gitops/apps/podinfo/overlays/prod
+  syncPolicy:
+    syncOptions: [CreateNamespace=true]   # no `automated:` — Kargo triggers syncs
+
+
