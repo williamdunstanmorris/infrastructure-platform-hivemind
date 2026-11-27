@@ -1,0 +1,41 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: dev
+  namespace: podinfo
+spec:
+  requestedFreight:
+    - origin: { kind: Warehouse, name: podinfo }
+      sources: { direct: true }      # dev takes Freight straight from the Warehouse
+  promotionTemplate:
+    spec:
+      vars:
+        - { name: gitRepo,  value: https://github.com/williamdunstanmorris/infrastructure-platform-hivemind }
+        - { name: imageRepo, value: ghcr.io/stefanprodan/podinfo }
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: ${{ vars.gitRepo }}
+            checkout:
+              - { branch: main, path: ./repo }
+        - uses: kustomize-set-image
+          config:
+            path: ./repo/platform/gitops/apps/podinfo/overlays/${{ ctx.stage }}
+            images:
+              - image: ${{ vars.imageRepo }}
+                tag: ${{ imageFrom(vars.imageRepo).Tag }}
+        - uses: git-commit
+          config:
+            path: ./repo
+            message: "kargo: podinfo ${{ ctx.stage }} → ${{ imageFrom(vars.imageRepo).Tag }}"
+        - uses: git-push
+          as: push
+          config:
+            path: ./repo
+        - uses: argocd-update
+          config:
+            apps:
+              - name: podinfo-${{ ctx.stage }}
+                sources:
+                  - repoURL: ${{ vars.gitRepo }}
+                    desiredRevision: ${{ outputs.push.commit }}

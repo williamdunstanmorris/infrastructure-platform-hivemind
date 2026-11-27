@@ -1,0 +1,11 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: podinfo
+  namespace: podinfo
+spec:
+  subscriptions:
+    - image:
+        repoURL: ghcr.io/stefanprodan/podinfo
+        semverConstraint: ^6.7.0     # any 6.x from 6.7.0 up
+        discoveryLimit: 5            # show the newest 5
