@@ -8,18 +8,21 @@ resource "helm_release" "argo_cd" {
 
   values = [yamlencode({
     configs = {
-      cm = {
-        # Lets Argo CD judge whether a child Application is healthy.
-        # Without this, sync waves don't wait for the previous wave to be ready.
-        "resource.customizations.health.argoproj.io_Application" = <<-EOT
-          hs = { status = "Progressing", message = "" }
-          if obj.status ~= nil and obj.status.health ~= nil then
-            hs.status = obj.status.health.status
-            hs.message = obj.status.health.message or ""
-          end
-          return hs
-        EOT
-      }
+      cm = merge(
+        {
+          # Lets Argo CD judge whether a child Application is healthy.
+          # Without this, sync waves don't wait for the previous wave to be ready.
+          "resource.customizations.health.argoproj.io_Application" = <<-EOT
+            hs = { status = "Progressing", message = "" }
+            if obj.status ~= nil and obj.status.health ~= nil then
+              hs.status = obj.status.health.status
+              hs.message = obj.status.health.message or ""
+            end
+            return hs
+          EOT
+        },
+        var.extra_argocd_cm,   # empty for cloud, Ingress health override for local
+      )
     }
   })]
 
@@ -51,6 +54,7 @@ resource "helm_release" "argocd_apps" {
           repoURL        = "https://github.com/williamdunstanmorris/infrastructure-platform-hivemind"
           targetRevision = "HEAD"
           path           = "platform/gitops/1-root"
+          directory      = { exclude = var.root_exclude }
         }
         syncPolicy = { automated = { prune = true, selfHeal = true } }
       }
